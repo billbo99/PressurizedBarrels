@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.0
+Date: 2020-09-09
+  Changes:
+    - Added High Pressure Offshore Pump,  runs slower than a normal pump, but outputs high pressure water directly.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.4
 Date: 2020-07-08
   Changes:
