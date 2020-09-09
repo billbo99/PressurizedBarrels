@@ -1,0 +1,16 @@
+{
+    "name": "PressurizedBarrels",
+    "version": "0.0.4",
+    "title": "Pressurized Barrels",
+    "author": "billbo99",
+    "contact": "",
+    "homepage": "https://mods.factorio.com/mod/PressurizedBarrels",
+    "factorio_version": "0.18",
+    "dependencies": [
+        "base",
+        "CompressedFluids",
+        "(?)PressurizedFluidsPollutionSolutionsBridge",
+        "(?)PressurizedFluidsSpaceExplorationBridge"
+    ],
+    "description": "Uses the fluids from 'Pressurized fluids' and creates barrels recipes for them."
+}
