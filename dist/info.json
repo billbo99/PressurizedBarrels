@@ -1,14 +1,15 @@
 {
     "name": "PressurizedBarrels",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "title": "Pressurized Barrels",
     "author": "billbo99",
     "contact": "",
     "homepage": "https://mods.factorio.com/mod/PressurizedBarrels",
-    "factorio_version": "1.00",
+    "factorio_version": "1.1",
     "dependencies": [
         "base",
         "CompressedFluids",
+        "(?)omnimatter",
         "(?)PressurizedFluidsPollutionSolutionsBridge",
         "(?)PressurizedFluidsSpaceExplorationBridge"
     ],

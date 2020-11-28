@@ -44,3 +44,8 @@ data:extend({entity, item, recipe})
 
 local tech = data.raw.technology["fluid-compressor"]
 table.insert(tech.effects, {recipe = "high-pressure-offshore-pump", type = "unlock-recipe"})
+
+if mods["omnimatter"] then
+    data.raw["offshore-pump"]["high-pressure-offshore-pump"].fluid = "high-pressure-omnic-water"
+    data.raw["offshore-pump"]["high-pressure-offshore-pump"].fluid_box.filter = "high-pressure-omnic-water"
+end
