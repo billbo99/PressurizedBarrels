@@ -1,6 +1,6 @@
 {
     "name": "PressurizedBarrels",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "title": "Pressurized Barrels",
     "author": "billbo99",
     "contact": "",
@@ -11,7 +11,8 @@
         "CompressedFluids",
         "(?)omnimatter",
         "(?)PressurizedFluidsPollutionSolutionsBridge",
-        "(?)PressurizedFluidsSpaceExplorationBridge"
+        "(?)PressurizedFluidsSpaceExplorationBridge",
+        "(?)space-exploration-postprocess"
     ],
     "description": "Uses the fluids from 'Pressurized fluids' and creates barrels recipes for them."
 }

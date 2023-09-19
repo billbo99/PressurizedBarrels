@@ -2,6 +2,10 @@ function starts_with(str, start)
     return str:sub(1, #start) == start
 end
 
+function remove_prefix(str, prefix)
+    return str:sub(#prefix + 1, #str)
+end
+
 -- The technology the barrel unlocks will be added to
 local technology_name = "fluid-compressor"
 -- The base empty barrel item
@@ -17,7 +21,7 @@ local barrel_empty_top_mask = "__base__/graphics/icons/fluid/barreling/barrel-em
 local barrel_fill_side_mask = "__base__/graphics/icons/fluid/barreling/barrel-fill-side-mask.png"
 local barrel_fill_top_mask = "__base__/graphics/icons/fluid/barreling/barrel-fill-top-mask.png"
 
-local hp_overlay = {icon = "__CompressedFluids__/graphics/icons/overlay-HP.png", icon_size = 32, tint = {r = 0, g = 1, b = 0}, shift = {10, -8}, scale = 0.5}
+local hp_overlay = { icon = "__CompressedFluids__/graphics/icons/overlay-HP.png", icon_size = 32, tint = { r = 0, g = 1, b = 0 }, shift = { 10, -8 }, scale = 0.5 }
 
 -- Alpha used for barrel masks
 local side_alpha = 0.75
@@ -43,6 +47,68 @@ local function get_item(name)
         return items[name]
     end
     return nil
+end
+
+local function se_delivery_cannon_recipie(resource)
+    if mods["space-exploration-postprocess"] and settings.startup["pb_enable_delivery_cannon"] and settings.startup["pb_enable_delivery_cannon"].value then
+        local orig_recipe = remove_prefix(resource.name, "high-pressure-")
+        if not data.raw.item["se-delivery-cannon-package-" .. orig_recipe] then return end
+
+        local type = resource.type or "item"
+        if data.raw[type][resource.name] then
+            local base = data.raw[type][resource.name]
+            local amount = resource.amount
+            if not amount then
+                if type == "fluid" then
+                    amount = 1000
+                else
+                    amount = math.min(200, base.stack_size or 1)
+                end
+            end
+            local order = ""
+            local o_subgroup = base.subgroup and data.raw["item-subgroup"][base.subgroup] or nil
+            local o_group = o_subgroup and data.raw["item-group"][o_subgroup.group] or nil
+            if o_group then
+                order = (o_group.order or o_group.name) .. "-|-" .. (o_subgroup.order or o_subgroup.name) .. "-|-"
+            end
+            order = order .. (base.order or base.name)
+            data:extend({
+                {
+                    type = "item",
+                    name = "se-delivery-cannon-package-" .. resource.name,
+                    icon = "__space-exploration-graphics__/graphics/icons/delivery-cannon-capsule.png",
+                    icon_size = 64,
+                    order = order,
+                    flags = { "hidden" },
+                    subgroup = base.subgroup or "delivery-cannon-capsules",
+                    stack_size = 1,
+                    localised_name = { "item-name.se-delivery-cannon-capsule-packed", base.localised_name or { type .. "-name." .. resource.name } }
+                },
+                {
+                    type = "recipe",
+                    name = "se-delivery-cannon-pack-" .. resource.name,
+                    icon = base.icon,
+                    icon_size = base.icon_size,
+                    icon_mipmaps = base.icon_mipmaps,
+                    icons = base.icons,
+                    result = "se-delivery-cannon-package-" .. resource.name,
+                    enabled = true,
+                    energy_required = 5,
+                    ingredients = {
+                        { "se-delivery-cannon-capsule",                   1 },
+                        { type = (type == 'fluid') and 'fluid' or 'item', name = resource.name, amount = amount },
+                    },
+                    requester_paste_multiplier = 1,
+                    always_show_made_in = false,
+                    category = "delivery-cannon",
+                    hide_from_player_crafting = true,
+                    hide_from_stats = true,
+                    localised_name = { "item-name.se-delivery-cannon-capsule-packed", base.localised_name or { type .. "-name." .. resource.name } },
+                    allow_decomposition = false
+                },
+            })
+        end
+    end
 end
 
 local function get_recipes_for_barrel(name)
@@ -86,7 +152,7 @@ local function create_barrel_item(name, fluid, empty_barrel_item)
     local result = {
         type = "item",
         name = name,
-        localised_name = {"item-name.filled-barrel", fluid.localised_name or {"fluid-name." .. fluid.name}},
+        localised_name = { "item-name.filled-barrel", fluid.localised_name or { "fluid-name." .. fluid.name } },
         icons = generate_barrel_item_icons(fluid, empty_barrel_item),
         icon_size = empty_barrel_item.icon_size,
         icon_mipmaps = empty_barrel_item.icon_mipmaps,
@@ -96,7 +162,7 @@ local function create_barrel_item(name, fluid, empty_barrel_item)
     }
 
     table.insert(result.icons, hp_overlay)
-    data:extend({result})
+    data:extend({ result })
     return result
 end
 
@@ -144,11 +210,11 @@ local function generate_fill_barrel_icons(fluid)
                 icon_size = fluid.icon_size,
                 icon_mipmaps = fluid.icon_mipmaps,
                 scale = 16.0 / fluid.icon_size, -- scale = 0.5 * 32 / icon_size simplified
-                shift = {4, -8}
+                shift = { 4, -8 }
             }
         )
     elseif fluid.icons then
-        icons = util.combine_icons(icons, fluid.icons, {scale = 0.5, shift = {4, -8}})
+        icons = util.combine_icons(icons, fluid.icons, { scale = 0.5, shift = { 4, -8 } })
     end
 
     return icons
@@ -188,11 +254,11 @@ local function generate_empty_barrel_icons(fluid)
                 icon_size = fluid.icon_size,
                 icon_mipmaps = fluid.icon_mipmaps,
                 scale = 16.0 / fluid.icon_size,
-                shift = {7, 8}
+                shift = { 7, 8 }
             }
         )
     elseif fluid.icons then
-        icons = util.combine_icons(icons, fluid.icons, {scale = 0.5, shift = {7, 8}})
+        icons = util.combine_icons(icons, fluid.icons, { scale = 0.5, shift = { 7, 8 } })
     end
 
     return icons
@@ -203,7 +269,7 @@ local function create_fill_barrel_recipe(item, fluid)
     local recipe = {
         type = "recipe",
         name = "fill-" .. item.name,
-        localised_name = {"recipe-name.fill-barrel", fluid.localised_name or {"fluid-name." .. fluid.name}},
+        localised_name = { "recipe-name.fill-barrel", fluid.localised_name or { "fluid-name." .. fluid.name } },
         category = "crafting-with-fluid",
         energy_required = energy_per_fill,
         subgroup = "hp-fill-barrel",
@@ -213,16 +279,16 @@ local function create_fill_barrel_recipe(item, fluid)
         icon_size = 64,
         icon_mipmaps = 4,
         ingredients = {
-            {type = "fluid", name = fluid.name, amount = fluid_per_barrel, catalyst_amount = fluid_per_barrel},
-            {type = "item", name = empty_barrel_name, amount = 1, catalyst_amount = 1}
+            { type = "fluid", name = fluid.name,        amount = fluid_per_barrel, catalyst_amount = fluid_per_barrel },
+            { type = "item",  name = empty_barrel_name, amount = 1,                catalyst_amount = 1 }
         },
         results = {
-            {type = "item", name = item.name, amount = 1, catalyst_amount = 1}
+            { type = "item", name = item.name, amount = 1, catalyst_amount = 1 }
         },
         allow_decomposition = false
     }
 
-    data:extend({recipe})
+    data:extend({ recipe })
     return recipe
 end
 
@@ -231,7 +297,7 @@ local function create_empty_barrel_recipe(item, fluid)
     local recipe = {
         type = "recipe",
         name = "empty-" .. item.name,
-        localised_name = {"recipe-name.empty-filled-barrel", fluid.localised_name or {"fluid-name." .. fluid.name}},
+        localised_name = { "recipe-name.empty-filled-barrel", fluid.localised_name or { "fluid-name." .. fluid.name } },
         category = "crafting-with-fluid",
         energy_required = energy_per_empty,
         subgroup = "hp-empty-barrel",
@@ -241,16 +307,16 @@ local function create_empty_barrel_recipe(item, fluid)
         icon_size = 64,
         icon_mipmaps = 4,
         ingredients = {
-            {type = "item", name = item.name, amount = 1, catalyst_amount = 1}
+            { type = "item", name = item.name, amount = 1, catalyst_amount = 1 }
         },
         results = {
-            {type = "fluid", name = fluid.name, amount = fluid_per_barrel, catalyst_amount = fluid_per_barrel},
-            {type = "item", name = empty_barrel_name, amount = 1, catalyst_amount = 1}
+            { type = "fluid", name = fluid.name,        amount = fluid_per_barrel, catalyst_amount = fluid_per_barrel },
+            { type = "item",  name = empty_barrel_name, amount = 1,                catalyst_amount = 1 }
         },
         allow_decomposition = false
     }
 
-    data:extend({recipe})
+    data:extend({ recipe })
     return recipe
 end
 
@@ -292,10 +358,10 @@ local function add_barrel_to_technology(fill_recipe, empty_recipe, technology)
     end
 
     if add_fill_recipe then
-        table.insert(effects, {type = unlock_key, recipe = fill_recipe.name})
+        table.insert(effects, { type = unlock_key, recipe = fill_recipe.name })
     end
     if add_empty_recipe then
-        table.insert(effects, {type = unlock_key, recipe = empty_recipe.name})
+        table.insert(effects, { type = unlock_key, recipe = empty_recipe.name })
     end
 end
 
@@ -347,6 +413,10 @@ local function process_fluid(fluid, technology, empty_barrel_item)
 
     -- check if the barrel has a recipe if not - create one
     local barrel_fill_recipe, barrel_empty_recipe = get_or_create_barrel_recipes(barrel_item, fluid)
+
+    if starts_with(fluid.name, "high-pressure-") then
+        se_delivery_cannon_recipie(barrel_item)
+    end
 
     -- check if the barrel recipe exists in the unlock list of the technology if not - add it
     add_barrel_to_technology(barrel_fill_recipe, barrel_empty_recipe, technology)
